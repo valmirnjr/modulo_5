@@ -1,16 +1,18 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 import api from "../../services/api";
 
 import Container from "../../components/Container";
-import { Loading, Owner, IssueList, Filter } from "./styles";
+import { Loading, Owner, IssueList, Filter, PageList } from "./styles";
 
 const propTypes = {
   match: PropTypes.shape({
     params: PropTypes.shape({
       repository: PropTypes.string,
+      page: PropTypes.number,
     }),
   }).isRequired,
 };
@@ -21,12 +23,13 @@ class Repository extends Component {
     issues: [],
     loading: true,
     repoState: "open",
+    page: 1,
   };
 
   async componentDidMount() {
     const { match } = this.props;
 
-    const { repoState } = this.state;
+    const { repoState, page } = this.state;
 
     const repoName = decodeURIComponent(match.params.repository);
 
@@ -35,6 +38,7 @@ class Repository extends Component {
       api.get(`/repos/${repoName}/issues`, {
         params: {
           state: repoState,
+          page,
           per_page: 5,
         },
       }),
@@ -52,24 +56,45 @@ class Repository extends Component {
     const { match } = this.props;
     const repoName = decodeURIComponent(match.params.repository);
 
-    const { repoState } = this.state;
+    const { repoState, page } = this.state;
 
     if (repoState !== prevState.repoState) {
       try {
-        console.log(`url: /repos/${repoName}/issues?state=${repoState}`);
         const issues = await api.get(`/repos/${repoName}/issues`, {
           params: {
             state: repoState,
+            page: 1,
             per_page: 5,
           },
         });
 
         this.setState({
           issues: issues.data,
+          page: 1,
           loading: false,
         });
       } catch (err) {
-        console.log(`${err.name}: ${err.description}`);
+        alert(`${err.name}: ${err.description}`);
+      }
+    }
+
+    if (page !== prevState.page) {
+      try {
+        const issues = await api.get(`/repos/${repoName}/issues`, {
+          params: {
+            state: repoState,
+            page,
+            per_page: 5,
+          },
+        });
+
+        this.setState({
+          issues: issues.data,
+          page,
+          loading: false,
+        });
+      } catch (err) {
+        alert(`${err.name}: ${err.description}`);
       }
     }
   }
@@ -78,8 +103,18 @@ class Repository extends Component {
     this.setState({ repoState: e.target.value });
   };
 
+  nextPage = () => {
+    const { page } = this.state;
+    this.setState({ page: page + 1 });
+  };
+
+  previousPage = () => {
+    const { page } = this.state;
+    this.setState({ page: page - 1 });
+  };
+
   render() {
-    const { repository, issues, loading } = this.state;
+    const { repository, issues, loading, page } = this.state;
 
     if (loading) {
       return <Loading>Carregando</Loading>;
@@ -147,6 +182,19 @@ class Repository extends Component {
             </li>
           ))}
         </IssueList>
+
+        <PageList>
+          <button
+            type="button"
+            onClick={this.previousPage}
+            disabled={page === 1}
+          >
+            <FaArrowLeft color="#fff" size={14} />
+          </button>
+          <button type="button" onClick={this.nextPage}>
+            <FaArrowRight color="#fff" size={14} />
+          </button>
+        </PageList>
       </Container>
     );
   }

@@ -116,3 +116,24 @@ export const IssueList = styled.ul`
     }
   }
 `;
+
+export const PageList = styled.div.attrs(props => ({
+  disabled: props.firstPage,
+}))`
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+
+  button {
+    background: #7159c1;
+    border: 0;
+    padding: 10px 10px;
+    border-radius: 4px;
+    margin: 0 10px;
+  }
+
+  button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+`;

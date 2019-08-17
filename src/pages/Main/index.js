@@ -60,7 +60,6 @@ export default class Main extends Component {
         newRepo: "",
       });
     } catch (err) {
-      // alert(`${err.name}: ${err.message}`);
       this.setState({ caughtError: true });
     }
     this.setState({
