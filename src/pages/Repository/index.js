@@ -52,65 +52,75 @@ class Repository extends Component {
   }
 
   // Atualizar página com novo filtro
-  async componentDidUpdate(_, prevState) {
+  /* async componentDidUpdate(_, prevState) {
     const { match } = this.props;
-    const repoName = decodeURIComponent(match.params.repository);
-
     const { repoState, page } = this.state;
 
-    if (repoState !== prevState.repoState) {
-      try {
-        const issues = await api.get(`/repos/${repoName}/issues`, {
-          params: {
-            state: repoState,
-            page: 1,
-            per_page: 5,
-          },
-        });
+    const repoName = decodeURIComponent(match.params.repository);
 
-        this.setState({
-          issues: issues.data,
+    if (repoState !== prevState.repoState) {
+      const issues = await api.get(`/repos/${repoName}/issues`, {
+        params: {
+          state: repoState,
           page: 1,
-          loading: false,
-        });
-      } catch (err) {
-        alert(`${err.name}: ${err.description}`);
-      }
+          per_page: 5,
+        },
+      });
+
+      this.setState({
+        issues: issues.data,
+        page: 1,
+        loading: false,
+      });
     }
 
     if (page !== prevState.page) {
-      try {
-        const issues = await api.get(`/repos/${repoName}/issues`, {
-          params: {
-            state: repoState,
-            page,
-            per_page: 5,
-          },
-        });
-
-        this.setState({
-          issues: issues.data,
+      const issues = await api.get(`/repos/${repoName}/issues`, {
+        params: {
+          state: repoState,
           page,
-          loading: false,
-        });
-      } catch (err) {
-        alert(`${err.name}: ${err.description}`);
-      }
+          per_page: 5,
+        },
+      });
+
+      this.setState({
+        issues: issues.data,
+        page,
+        loading: false,
+      });
     }
-  }
+  } */
 
-  handleInputChange = e => {
-    this.setState({ repoState: e.target.value });
+  loadIssues = async () => {
+    const { match } = this.props;
+    const { repoState, page } = this.state;
+
+    const repoName = decodeURIComponent(match.params.repository);
+
+    const issues = await api.get(`/repos/${repoName}/issues`, {
+      params: {
+        state: repoState,
+        page,
+        per_page: 5,
+      },
+    });
+
+    this.setState({
+      issues: issues.data,
+      loading: false,
+    });
   };
 
-  nextPage = () => {
-    const { page } = this.state;
-    this.setState({ page: page + 1 });
+  handleInputChange = async e => {
+    await this.setState({ repoState: e.target.value, page: 1 });
+    this.loadIssues();
   };
 
-  previousPage = () => {
+  // Receives the amount of pages to avance or to go back
+  handlePageChange = async amount => {
     const { page } = this.state;
-    this.setState({ page: page - 1 });
+    await this.setState({ page: page + amount });
+    this.loadIssues();
   };
 
   render() {
@@ -186,12 +196,12 @@ class Repository extends Component {
         <PageList>
           <button
             type="button"
-            onClick={this.previousPage}
+            onClick={() => this.handlePageChange(-1)}
             disabled={page === 1}
           >
             <FaArrowLeft color="#fff" size={14} />
           </button>
-          <button type="button" onClick={this.nextPage}>
+          <button type="button" onClick={() => this.handlePageChange(1)}>
             <FaArrowRight color="#fff" size={14} />
           </button>
         </PageList>

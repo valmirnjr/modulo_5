@@ -61,10 +61,11 @@ export default class Main extends Component {
       });
     } catch (err) {
       this.setState({ caughtError: true });
+    } finally {
+      this.setState({
+        loading: false,
+      });
     }
-    this.setState({
-      loading: false,
-    });
   };
 
   render() {
